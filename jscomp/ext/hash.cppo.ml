@@ -53,12 +53,12 @@ let add (h : _ t) key data =
 let modify_or_init 
   (h : 'a t) 
   (key : key) 
-  (modf : 'a -> unit) 
+  (modf : 'a -> 'a) 
   (default : unit -> 'a) : unit =
   let rec find_bucket (bucketlist : _ bucketlist) : bool =
     match bucketlist with
     | Cons rhs  ->
-      if eq_key rhs.key key then begin modf rhs.data; false end
+      if eq_key rhs.key key then begin rhs.data <- modf rhs.data; false end
       else find_bucket rhs.rest
     | Empty -> true in
   let i = key_index h key in 

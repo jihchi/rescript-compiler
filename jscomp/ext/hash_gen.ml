@@ -189,7 +189,11 @@ module type S = sig
   val reset: 'a t -> unit
 
   val add: 'a t -> key -> 'a -> unit
-  val modify_or_init: 'a t -> key -> ('a -> unit) -> (unit -> 'a) -> unit 
+  val modify_or_init: 
+    'a t -> 
+    key -> 
+    ('a -> 'a) -> 
+    (unit -> 'a) -> unit 
   val remove: 'a t -> key -> unit
   val find_exn: 'a t -> key -> 'a
   val find_all: 'a t -> key -> 'a list

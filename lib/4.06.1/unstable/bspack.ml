@@ -11068,7 +11068,11 @@ module type S = sig
   val reset: 'a t -> unit
 
   val add: 'a t -> key -> 'a -> unit
-  val modify_or_init: 'a t -> key -> ('a -> unit) -> (unit -> 'a) -> unit 
+  val modify_or_init: 
+    'a t -> 
+    key -> 
+    ('a -> 'a) -> 
+    (unit -> 'a) -> unit 
   val remove: 'a t -> key -> unit
   val find_exn: 'a t -> key -> 'a
   val find_all: 'a t -> key -> 'a list
@@ -11165,12 +11169,12 @@ let add (h : _ t) key data =
 let modify_or_init 
   (h : 'a t) 
   (key : key) 
-  (modf : 'a -> unit) 
+  (modf : 'a -> 'a) 
   (default : unit -> 'a) : unit =
   let rec find_bucket (bucketlist : _ bucketlist) : bool =
     match bucketlist with
     | Cons rhs  ->
-      if eq_key rhs.key key then begin modf rhs.data; false end
+      if eq_key rhs.key key then begin rhs.data <- modf rhs.data; false end
       else find_bucket rhs.rest
     | Empty -> true in
   let i = key_index h key in 
