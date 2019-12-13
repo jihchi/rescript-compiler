@@ -11187,22 +11187,33 @@ let modify_or_init
     end
 
 
-let rec remove_bucket key (h : _ t) (bucketlist : _ bucketlist) : _ bucketlist = 
+(* let rec remove_bucket key (h : _ t) (bucketlist : _ bucketlist) : _ bucketlist = 
   match bucketlist with  
   | Empty ->
     Empty
   | Cons rhs ->
     if eq_key rhs.key key 
     then begin h.size <- h.size - 1; rhs.rest end
-    else Cons {rhs with rest=remove_bucket key h rhs.rest} 
+    else Cons {rhs with rest=remove_bucket key h rhs.rest}  *)
+
+let rec remove_bucket (h : _ t) i key (prec : _ bucketlist) (buck : _ bucketlist) eq_key = 
+  match buck with   
+  | Empty ->
+    ()
+  | (Cons {key=k; rest = next }) as c ->
+    if eq_key k key 
+    then begin
+      h.size <- h.size - 1;
+      match prec with
+      | Empty -> Array.unsafe_set h.data i  next
+      | Cons c -> c.rest <- next
+    end
+    else remove_bucket h i key c next eq_key
 
 let remove (h : _ t ) key =
   let i = key_index h key in
   let h_data = h.data in 
-  let old_h_szie = h.size in 
-  let new_bucket = remove_bucket key h (Array.unsafe_get h_data i) in  
-  if old_h_szie <> h.size then 
-    Array.unsafe_set h_data i  new_bucket
+  remove_bucket h i key Empty (Array.unsafe_get h_data i) eq_key
 
 (* for short bucket list, [find_rec is not called ] *)
 let rec find_rec key (bucketlist : _ bucketlist) = match bucketlist with  
