@@ -71,15 +71,6 @@ let modify_or_init
     end
 
 
-(* let rec remove_bucket key (h : _ t) (bucketlist : _ bucketlist) : _ bucketlist = 
-  match bucketlist with  
-  | Empty ->
-    Empty
-  | Cons rhs ->
-    if eq_key rhs.key key 
-    then begin h.size <- h.size - 1; rhs.rest end
-    else Cons {rhs with rest=remove_bucket key h rhs.rest}  *)
-
 let rec remove_bucket (h : _ t) i key (prec : _ bucketlist) (buck : _ bucketlist) eq_key = 
   match buck with   
   | Empty ->
@@ -138,22 +129,22 @@ let find_all (h : _ t) key =
       else find_in_bucket rest in
   find_in_bucket (Array.unsafe_get h.data (key_index h key))
 
-let replace h key info =
-  let rec replace_bucket (bucketlist : _ bucketlist) : _ bucketlist = match bucketlist with 
-    | Empty ->
-      raise_notrace Not_found
-    | Cons{key = k; data=i; rest = next} ->
-      if eq_key k key
-      then Cons{key=key; data=info; rest=next}
-      else Cons{key=k; data=i; rest = replace_bucket next} in
+let rec replace_bucket key data (buck : _ bucketlist) eq_key = 
+  match buck with   
+  | Empty ->
+    true
+  | Cons ({key=k; rest = next} as slot) ->
+    if eq_key k key
+    then (slot.key <- key; slot.data <- data; false)
+    else replace_bucket key data next eq_key
+
+let replace h key data =
   let i = key_index h key in
   let h_data = h.data in 
   let l = Array.unsafe_get h_data i in
-  try
-    Array.unsafe_set h_data i  (replace_bucket l)
-  with Not_found ->
+  if replace_bucket key data l eq_key then 
     begin 
-      Array.unsafe_set h_data i (Cons{key; data=info; rest=l});
+      Array.unsafe_set h_data i (Cons{key; data; rest=l});
       h.size <- h.size + 1;
       if h.size > Array.length h_data lsl 1 then Hash_gen.resize key_index h;
     end 
