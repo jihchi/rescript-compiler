@@ -104,7 +104,7 @@ let to_list h f =
 
 
 
-let rec small_bucket_mem eq key (lst : _ bucketlist) =
+let rec small_bucket_mem (lst : _ bucketlist) eq key  =
   match lst with 
   | Empty -> false 
   | Cons lst -> 
@@ -117,7 +117,7 @@ let rec small_bucket_mem eq key (lst : _ bucketlist) =
       | Empty -> false 
       | Cons lst -> 
         eq key lst.key  ||
-        small_bucket_mem eq key lst.rest
+        small_bucket_mem lst.rest eq key 
 
 
 let rec small_bucket_opt eq key (lst : _ bucketlist) : _ option =

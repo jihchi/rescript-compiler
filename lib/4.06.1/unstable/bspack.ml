@@ -10983,7 +10983,7 @@ let to_list h f =
 
 
 
-let rec small_bucket_mem eq key (lst : _ bucketlist) =
+let rec small_bucket_mem (lst : _ bucketlist) eq key  =
   match lst with 
   | Empty -> false 
   | Cons lst -> 
@@ -10996,7 +10996,7 @@ let rec small_bucket_mem eq key (lst : _ bucketlist) =
       | Empty -> false 
       | Cons lst -> 
         eq key lst.key  ||
-        small_bucket_mem eq key lst.rest
+        small_bucket_mem lst.rest eq key 
 
 
 let rec small_bucket_opt eq key (lst : _ bucketlist) : _ option =
@@ -11149,8 +11149,12 @@ let add (h : _ t) key data =
   if h.size > Array.length h_data lsl 1 then Hash_gen.resize key_index h
 
 (* after upgrade to 4.04 we should provide an efficient [replace_or_init] *)
-let modify_or_init (h : _ t) key modf default =
-  let rec find_bucket (bucketlist : _ bucketlist)  =
+let modify_or_init 
+  (h : 'a t) 
+  (key : key) 
+  (modf : 'a -> unit) 
+  (default : unit -> 'a) : unit =
+  let rec find_bucket (bucketlist : _ bucketlist) : bool =
     match bucketlist with
     | Cons rhs  ->
       if eq_key rhs.key key then begin modf rhs.data; false end
@@ -11242,13 +11246,10 @@ let replace h key info =
       if h.size > Array.length h_data lsl 1 then Hash_gen.resize key_index h;
     end 
 
-let mem (h : _ t) key =
-  let rec mem_in_bucket (bucketlist : _ bucketlist) = match bucketlist with 
-    | Empty ->
-      false
-    | Cons rhs ->
-      eq_key rhs.key key  || mem_in_bucket rhs.rest in
-  mem_in_bucket (Array.unsafe_get h.data (key_index h key))
+let mem (h : _ t) key = 
+  Hash_gen.small_bucket_mem 
+    (Array.unsafe_get h.data (key_index h key))
+    eq_key key 
 
 
 let of_list2 ks vs = 
